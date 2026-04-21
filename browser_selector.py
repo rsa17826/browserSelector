@@ -324,19 +324,23 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   if always_on_top:
     root.attributes("-topmost", True)
 
+  # Grid: row 0 = URL bar (fixed), row 1 = canvas (expands), row 2 = buttons (fixed)
+  root.grid_rowconfigure(1, weight=1)
+  root.grid_columnconfigure(0, weight=1)
+
   # ── URL bar ───────────────────────────────────────────────────────────────
   url_var = tk.StringVar(value=url)
   url_entry = tk.Entry(
     root, textvariable=url_var, bg="#999999", fg="black", relief="flat", bd=2
   )
-  url_entry.pack(fill="x", padx=4, pady=(4, 2))
+  url_entry.grid(row=0, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 2))
 
   # ── Scrollable match-options area ─────────────────────────────────────────
-  canvas = tk.Canvas(root, bg=BG, highlightthickness=0, height=160)
+  canvas = tk.Canvas(root, bg=BG, highlightthickness=0)
   scroll = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
   canvas.configure(yscrollcommand=scroll.set)
-  canvas.pack(side="top", fill="x", padx=4)
-  scroll.pack(side="right", fill="y")
+  canvas.grid(row=1, column=0, sticky="nsew", padx=(4, 0))
+  scroll.grid(row=1, column=1, sticky="ns")
 
   inner = tk.Frame(canvas, bg=BG)
   canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
@@ -408,7 +412,8 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
   # ── Program buttons ───────────────────────────────────────────────────────
   btn_frame = tk.Frame(root, bg=BG)
-  btn_frame.pack(fill="x", padx=4, pady=4)
+  btn_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=4, pady=4)
+  btn_frame.grid_columnconfigure(0, weight=1)
 
   def make_handler(prog_name: str):
     def _open():
