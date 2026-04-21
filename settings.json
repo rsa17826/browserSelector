@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "closeOnFocusLoss": true,
+    "defaultBrowser": "",
+    "closeOnEscPressed": true,
+    "hideEmptyProperties": true,
+    "alwaysOnTop": true
+  },
+  "programs": {
+    "__default__": {
+      "path": "__default__",
+      "args": ["$url"]
+    },
+    "firefox": {
+      "path": "firefox",
+      "args": ["$url"]
+    },
+    "chromium": {
+      "path": "chromium",
+      "args": ["$url"]
+    },
+    "work-profile": {
+      "path": "firefox",
+      "args": ["-P", "work", "$url"]
+    }
+  }
+}

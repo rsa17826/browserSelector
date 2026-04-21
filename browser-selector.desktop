@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Browser Selector
+GenericName=Web Browser
+Comment=Pick which browser to open URLs with
+Exec=/etc/browser-selector/browser_selector.py %u
+Type=Application
+MimeType=x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/mailto;
+NoDisplay=false
+StartupNotify=false
+Icon=web-browser
