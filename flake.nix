@@ -93,6 +93,10 @@
             source = ./settings.json;
             mode = "0644";
           };
+          environment.etc."browser-selector/settings.schema.jsonc" = {
+            source = ./settings.schema.jsonc;
+            mode = "0644";
+          };
         };
     };
 }

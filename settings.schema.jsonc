@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "",
+  "type": "object",
+  "additionalProperties": false,
+  "programdefault": {
+    "type": "object",
+    "properties": {
+      "args": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "use $url to get url, $parentpath to get the process that spawned the request, ect",
+          "minLength": 1
+        }
+      },
+      "path": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ]
+      },
+      "visible": {
+        "type": "boolean"
+      },
+      "admin": {
+        "type": "boolean"
+      },
+      "fallback": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "properties": {
+    "settings": {
+      "type": "object",
+      "properties": {
+        "defaultBrowser": {
+          "type": "string",
+          "default": "",
+          "description": "the browser to open all unmatched requests with, blank for choose every time"
+        },
+        "hideEmptyProperties": {
+          "type": "boolean",
+          "default": true,
+          "description": "the url properties that are blank will be hiden in the browser selector gui"
+        },
+        "closeOnFocusLoss": {
+          "type": "boolean",
+          "default": true,
+          "description": "will close the browser selector window when you click off the window"
+        },
+        "alwaysOnTop": {
+          "type": "boolean",
+          "default": true,
+          "description": "sets the browser selector window to be always on top"
+        },
+        "closeOnEscPressed": {
+          "type": "boolean",
+          "default": true,
+          "description": "if true while and the escape key is pressed the window will be closed"
+        },
+        "closeOnEscPressedAnywhere": {
+          "type": "boolean",
+          "default": false,
+          "description": "if true while and the escape key is pressed the window will be closed even if the window is not focused"
+        },
+        "titleBar": {
+          "enum": [
+            "shown",
+            "hidden",
+            "toggle start hidden",
+            "toggle start shown"
+          ],
+          "default": "hidden",
+          "description": "will show/hide the titlebar for the browser selector"
+        }
+      },
+      "additionalProperties": false
+    },
+    "programs": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "object",
+            "$ref": "#/programdefault"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "$ref": "#/programdefault"
+            }
+          }
+        ]
+      }
+    },
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "default": [],
+      "items": {
+        "required": ["matches", "name"],
+        "default": {},
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "additionalItems": false,
+              "items": [
+                {
+                  "enum": [
+                    "url",
+                    "protocol",
+                    "fulldomain",
+                    "tld",
+                    "subdomain",
+                    "maindomainonly",
+                    "maindomain",
+                    "parentprocesspath",
+                    "path",
+                    "perams",
+                    "port",
+                    "hash",
+                    "fileName",
+                    "drive",
+                    "FileExt",
+                    "FileName And Ext"
+                  ],
+                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                },
+                {
+                  "enum": [
+                    "is",
+                    "matchesregex",
+                    "isexact",
+                    "startswith",
+                    "endswith",
+                    "includes"
+                  ],
+                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                },
+                {
+                  "type": "string",
+                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword",
+                  "default": "^https?://"
+                }
+              ]
+            }
+          },
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "leave blank to ignore url, else set to some key inside #/programs"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["rules", "programs", "settings"]
+}

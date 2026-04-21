@@ -16,6 +16,7 @@ cp "$SCRIPT_DIR/browser_selector.py" "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/browser_selector.py"
 
 # Only copy settings if one doesn't already exist there
+cp "$SCRIPT_DIR/settings.schema.jsonc" "$INSTALL_DIR/"
 if [ ! -f "$INSTALL_DIR/settings.json" ]; then
   cp "$SCRIPT_DIR/settings.json" "$INSTALL_DIR/"
   echo "Copied default settings to $INSTALL_DIR/settings.json"
