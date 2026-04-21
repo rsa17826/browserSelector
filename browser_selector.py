@@ -41,6 +41,7 @@ CONFIG_PATHS: list[Path] = (
 )
 
 DEFAULT_SETTINGS: dict[str, Any] = {
+  "$schema": "./settings.schema.jsonc",
   "settings": {
     "closeOnFocusLoss": True,
     "defaultBrowser": "",
