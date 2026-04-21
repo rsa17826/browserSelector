@@ -430,6 +430,8 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
       match["url"] = url_var.get()
       root.destroy()
+      if prog_name=='':
+        root.destroy()
       run_program(prog_name, settings, match)
 
     return _open
@@ -442,7 +444,7 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
     fg=FG_BTN,
     relief="raised",
     bd=3,
-    command=root.destroy,
+    command=make_handler(""),
   ).pack(fill="x", pady=1)
 
   programs = settings.get("programs", {})
