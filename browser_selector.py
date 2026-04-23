@@ -18,9 +18,108 @@ import subprocess
 import sys
 import shutil
 import tkinter as tk
-from tkinter import ttk
 from pathlib import Path
 from typing import Any
+
+# ── Caller process info ───────────────────────────────────────────────────────
+
+# Processes that are just launchers/shells — keep walking up past these
+_SKIP_PROCS = frozenset(
+  {
+    "python",
+    "python3",
+    "bash",
+    "sh",
+    "dash",
+    "zsh",
+    "fish",
+    "ksh",
+    "xdg-open",
+    "xdg-mime",
+    "gio",
+    "gvfs-open",
+    "dde-open",
+  }
+)
+
+
+def _proc_ppid(pid: int) -> int:
+  try:
+    for line in Path(f"/proc/{pid}/status").read_text().splitlines():
+      if line.startswith("PPid:"):
+        return int(line.split()[1])
+  except Exception:
+    pass
+  return 0
+
+
+def _proc_comm(pid: int) -> str:
+  try:
+    return Path(f"/proc/{pid}/comm").read_text().strip()
+  except Exception:
+    return ""
+
+
+def _proc_exe(pid: int) -> str:
+  try:
+    return os.readlink(f"/proc/{pid}/exe")
+  except Exception:
+    return ""
+
+
+def _proc_cmdline(pid: int) -> str:
+  try:
+    return (
+      Path(f"/proc/{pid}/cmdline")
+      .read_bytes()
+      .replace(b"\x00", b" ")
+      .decode()
+      .strip()
+    )
+  except Exception:
+    return ""
+
+
+def get_caller_info() -> dict[str, str]:
+  """
+  Walk /proc upward from our PID to find the first ancestor that is not a
+  shell, Python interpreter, or xdg-open helper.
+
+  Returns keys that merge into the URL match dict:
+    parentprocesspath     – resolved exe path  (already in schema Literal)
+    parentprocessname     – comm name (e.g. "code", "slack")
+    parentprocesscmdline  – full command line
+  """
+  result: dict[str, str] = {
+    "parentprocesspath": "",
+    "parentprocessname": "",
+    "parentprocesscmdline": "",
+  }
+  if not sys.platform.startswith("linux"):
+    return result
+
+  pid = os.getpid()
+  seen: set[int] = set()
+
+  while True:
+    ppid = _proc_ppid(pid)
+    if ppid <= 1 or ppid in seen:
+      break
+    seen.add(ppid)
+
+    name = _proc_comm(ppid)
+    # Strip trailing version digits so "python3.11" → "python3" → skip
+    bare = name.lower().rstrip("0123456789.-")
+    if bare not in _SKIP_PROCS and name.lower() not in _SKIP_PROCS:
+      result["parentprocesspath"] = _proc_exe(ppid)
+      result["parentprocessname"] = name
+      result["parentprocesscmdline"] = _proc_cmdline(ppid)
+      break
+
+    pid = ppid
+
+  return result
+
 
 # ── Settings discovery ────────────────────────────────────────────────────────
 
@@ -322,8 +421,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   root.title("Browser Selector")
   root.configure(bg=BG)
   root.resizable(True, True)
-  if always_on_top:
-    root.attributes("-topmost", True)
 
   # Grid: row 0 = URL bar (fixed), row 1 = canvas (expands), row 2 = buttons (fixed)
   root.grid_rowconfigure(1, weight=1)
@@ -366,6 +463,10 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   # Build one row per URL field
   row_vars: dict[str, tuple] = {} # key → (BoolVar, StringVar type, StringVar value)
 
+  FONT = ("TkFixedFont", 11)
+  visible_keys = [k for k, v in match.items() if not hide_empty or str(v)]
+  label_w = max((len(k) for k in visible_keys), default=10) + 1
+
   for i, (key, val) in enumerate(match.items()):
     val_str = str(val)
     if hide_empty and not val_str:
@@ -382,17 +483,62 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
     tk.Checkbutton(
       row, variable=checked_var, bg=row_bg, activebackground=row_bg
     ).pack(side="left")
-    tk.Label(row, text=key, width=16, anchor="w", bg=row_bg, fg="black").pack(
-      side="left"
-    )
+    tk.Label(
+      row,
+      text=key,
+      width=label_w,
+      anchor="w",
+      bg=row_bg,
+      fg="black",
+      font=FONT,
+    ).pack(side="left")
 
-    type_cb = ttk.Combobox(
-      row, textvariable=type_var, values=MATCH_TYPES, width=11, state="readonly"
+    # Plain Menubutton + Menu avoids the "button-inside-button" indicator
+    # that tk.OptionMenu adds, and reliably floats above the window on Linux.
+    mb = tk.Menubutton(
+      row,
+      text="is",
+      bg=BG_BTN,
+      fg=FG_BTN,
+      activebackground="#5a5a5a",
+      activeforeground=FG_BTN,
+      relief="groove",
+      bd=1,
+      padx=6,
+      pady=2,
+      font=FONT,
     )
-    type_cb.pack(side="left", padx=2)
+    popup = tk.Menu(
+      mb,
+      tearoff=0,
+      bg=BG_BTN,
+      fg=FG_BTN,
+      font=FONT,
+      activebackground="#5a5a5a",
+      activeforeground=FG_BTN,
+    )
+    mb["menu"] = popup
+
+    def _make_type_setter(var, btn):
+      def _set(v):
+        var.set(v)
+        btn.configure(text=v)
+
+      return _set
+
+    _set_type = _make_type_setter(type_var, mb)
+    for mt in MATCH_TYPES:
+      popup.add_command(label=mt, command=lambda v=mt: _set_type(v))
+
+    mb.pack(side="left", padx=2)
 
     val_entry = tk.Entry(
-      row, textvariable=value_var, bg=BG_MATCH, fg="black", relief="flat"
+      row,
+      textvariable=value_var,
+      bg=BG_MATCH,
+      fg="black",
+      relief="flat",
+      font=FONT,
     )
     val_entry.pack(side="left", fill="x", expand=True, padx=(0, 4))
 
@@ -431,7 +577,7 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
       match["url"] = url_var.get()
       root.destroy()
-      if prog_name=='':
+      if prog_name == "":
         root.destroy()
       run_program(prog_name, settings, match)
 
@@ -469,22 +615,37 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   if close_on_blur:
 
     def _on_blur(event: "tk.Event[tk.Misc]") -> None:
-      # focus_get() raises KeyError when a ttk.Combobox dropdown
-      # ('popdown') temporarily steals focus — that's not a real blur.
-      try:
-        focused = root.focus_get()
-      except KeyError:
-        return # combobox dropdown opened, ignore
-      if focused is None:
-        root.destroy()
+      # Delay the check so that:
+      # 1. A ttk.Combobox popdown Toplevel has time to take focus
+      #    (focus_get() raises KeyError or returns None mid-transition).
+      # 2. Any other transient focus change (window decoration, etc.)
+      #    resolves before we decide the window has truly lost focus.
+      def _check() -> None:
+        # If a tk.Menu is posted it holds a global grab — not a True blur.
+        if root.grab_current() is not None:
+          return
+        try:
+          focused = root.focus_get()
+        except KeyError:
+          return # transient focus change (shouldn't happen without a grab, but guard anyway)
+        if focused is None:
+          root.destroy()
 
-    root.bind("<FocusOut>", _on_blur)
+      root.after(150, _check)
+
+    # Delay binding until the window is fully mapped and has taken focus.
+    # Without this, the initial focus transition fires FocusOut immediately
+    # and the window destroys itself before the user sees it.
+    root.after(300, lambda: root.bind("<FocusOut>", _on_blur))
 
   root.update_idletasks()
   # Center on screen
   w, h = root.winfo_reqwidth(), root.winfo_reqheight()
   sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
   root.geometry(f"{max(w, 420)}x{max(h, 300)}+{(sw-420)//2}+{(sh-300)//2}")
+
+  # Grab keyboard focus so Escape works without the user having to click first
+  root.focus_force()
 
   root.mainloop()
 
@@ -503,6 +664,7 @@ def main():
   user_settings = settings.get("settings", {})
 
   match = parse_url(url)
+  match.update(get_caller_info())
 
   if not force:
     # 1. Default browser shortcut
