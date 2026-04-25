@@ -13,55 +13,10 @@
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
     in
     {
-      # ── nix run / nix build ──────────────────────────────────────────────
       packages = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          python = pkgs.python3.withPackages (ps: [ ps.tkinter ]);
-        in
-        {
-          default = pkgs.writeShellApplication {
-            name = "browser-selector";
-            runtimeInputs = [ python ];
-            text = ''
-              exec python3 "${./browser_selector.py}" "$@"
-            '';
-          };
-        }
-      );
-
-      # ── nix develop / direnv ─────────────────────────────────────────────
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          default = pkgs.mkShell {
-            packages = [
-              (pkgs.python3.withPackages (ps: [ ps.tkinter ]))
-              pkgs.xdg-utils # xdg-settings, xdg-mime
-              pkgs.basedpyright # type checker
-            ];
-            shellHook = ''
-              echo "browser-selector dev shell"
-              echo "run:  python3 browser_selector.py 'https://example.com'"
-              echo "test: python3 browser_selector.py 'https://example.com' --force"
-            '';
-          };
-        }
-      );
-
-      # ── NixOS module ─────────────────────────────────────────────────────
-      nixosModules.default =
-        {
-          config,
-          pkgs,
-          lib,
-          ...
-        }:
-        let
           python = pkgs.python3.withPackages (ps: [ ps.tkinter ]);
           script = pkgs.writeShellApplication {
             name = "browser-selector";
@@ -85,18 +40,36 @@
           };
         in
         {
-          environment.systemPackages = [
-            script
-            desktop
-          ];
-          environment.etc."browser-selector/settings.json" = {
-            source = ./settings.json;
-            mode = "0644";
+          inherit script desktop;
+          default = pkgs.symlinkJoin {
+            name = "browser-selector";
+            paths = [
+              script
+              desktop
+            ];
           };
-          environment.etc."browser-selector/settings.schema.jsonc" = {
-            source = ./settings.schema.jsonc;
-            mode = "0644";
+        }
+      );
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              (pkgs.python3.withPackages (ps: [ ps.tkinter ]))
+              pkgs.xdg-utils
+              pkgs.basedpyright
+            ];
+            shellHook = ''
+              echo "browser-selector dev shell"
+              echo "run:  python3 browser_selector.py 'https://example.com'"
+              echo "test: python3 browser_selector.py 'https://example.com' --force"
+            '';
           };
-        };
+        }
+      );
     };
 }
