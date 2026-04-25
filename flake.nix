@@ -18,16 +18,25 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           python = pkgs.python3.withPackages (ps: [ ps.tkinter ]);
-          schema = pkgs.writeTextFile {
-    name = "settings.schema.jsonc";
-    destination = "/share/browser-selector/settings.schema.jsonc";
-    text = builtins.readFile ./settings.schema.jsonc;
-  };
-
-          script = pkgs.writeShellApplication {
+          script = pkgs.stdenv.mkDerivation {
             name = "browser-selector";
-            runtimeInputs = [ python ];
-            text = ''exec python3 "${./browser_selector.py}" "$@"'';
+            src = pkgs.lib.fileset.toSource {
+              root = ./.;
+              fileset = pkgs.lib.fileset.unions [
+                ./browser_selector.py
+                ./settings.schema.jsonc
+              ];
+            };
+
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+
+            installPhase = ''
+              mkdir -p $out/lib/browser-selector $out/bin
+              cp browser_selector.py settings.schema.jsonc $out/lib/browser-selector/
+
+              makeWrapper ${python}/bin/python3 $out/bin/browser-selector \
+                --add-flags "$out/lib/browser-selector/browser_selector.py"
+            '';
           };
           desktop = pkgs.writeTextFile {
             name = "browser-selector.desktop";
