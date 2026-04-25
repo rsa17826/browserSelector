@@ -168,6 +168,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 def find_settings_file() -> Path:
   for p in CONFIG_PATHS:
     if p.exists():
+      s = load_settings(p)
+      s["$schema"] = os.path.join(os.getcwd(), "settings.schema.jsonc")
+      save_settings(p, s)
       return p
   # Bootstrap default config — always write to the last (writable) path
   path = CONFIG_PATHS[-1]
@@ -347,7 +350,10 @@ def resolve_path(path: str) -> str | None:
   found = shutil.which(path)
   return found # None if not found
 
+
 import shlex
+
+
 def run_program(prog_name: str, settings: dict, match: dict):
   """Launch prog_name, substituting $vars from match into args."""
   if not prog_name:

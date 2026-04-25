@@ -4,8 +4,7 @@
     "closeOnFocusLoss": false,
     "defaultBrowser": "",
     "closeOnEscPressed": true,
-    "hideEmptyProperties": true,
-    "alwaysOnTop": false
+    "hideEmptyProperties": true
   },
   "programs": {
     "__default__": {

@@ -18,6 +18,12 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           python = pkgs.python3.withPackages (ps: [ ps.tkinter ]);
+          schema = pkgs.writeTextFile {
+    name = "settings.schema.jsonc";
+    destination = "/share/browser-selector/settings.schema.jsonc";
+    text = builtins.readFile ./settings.schema.jsonc;
+  };
+
           script = pkgs.writeShellApplication {
             name = "browser-selector";
             runtimeInputs = [ python ];
