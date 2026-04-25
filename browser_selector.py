@@ -160,6 +160,11 @@ DEFAULT_SETTINGS: dict[str, Any] = {
       "path": "chromium",
       "args": ["$url"],
     },
+    "copy and notify": {
+      "path": "sh",
+      "args": ["-c", "wl-copy '$url' && notify-send -t 2000 'Copied: $url'"],
+    },
+    "notify": {"path": "notify-send", "args": ["-t", "2000", "$url"]},
   },
   "rules": [],
 }
@@ -169,7 +174,9 @@ def find_settings_file() -> Path:
   for p in CONFIG_PATHS:
     if p.exists():
       s = load_settings(p)
-      s["$schema"] = os.path.join(os.path.dirname(__file__), "settings.schema.jsonc")
+      s["$schema"] = os.path.join(
+        os.path.dirname(__file__), "settings.schema.jsonc"
+      )
       save_settings(p, s)
       return p
   # Bootstrap default config — always write to the last (writable) path
