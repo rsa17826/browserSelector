@@ -146,7 +146,6 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "defaultBrowser": "",
     "closeOnEscPressed": True,
     "hideEmptyProperties": True,
-    "alwaysOnTop": True,
   },
   "programs": {
     "__default__": {
@@ -413,7 +412,6 @@ MATCH_TYPES = ["is", "matchesregex", "isexact", "startswith", "endswith", "inclu
 def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   user_settings = settings.get("settings", {})
   hide_empty = user_settings.get("hideEmptyProperties", True)
-  always_on_top = user_settings.get("alwaysOnTop", True)
   close_on_esc = user_settings.get("closeOnEscPressed", True)
   close_on_blur = user_settings.get("closeOnFocusLoss", True)
 

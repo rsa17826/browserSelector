@@ -1,27 +1,59 @@
 {
+  "$schema": "./settings.schema.jsonc",
   "settings": {
-    "closeOnFocusLoss": true,
+    "closeOnFocusLoss": false,
     "defaultBrowser": "",
     "closeOnEscPressed": true,
     "hideEmptyProperties": true,
-    "alwaysOnTop": true
+    "alwaysOnTop": false
   },
   "programs": {
     "__default__": {
       "path": "__default__",
       "args": ["$url"]
     },
-    "firefox": {
-      "path": "firefox",
+    "brave": {
+      "path": "brave",
       "args": ["$url"]
     },
-    "chromium": {
-      "path": "chromium",
-      "args": ["$url"]
+    "copy": {
+      "path": "sh",
+      "args": [
+        "-c",
+        "wl-copy '$url' && notify-send -t 2000 'Copied: $url'"
+      ]
     },
-    "work-profile": {
-      "path": "firefox",
-      "args": ["-P", "work", "$url"]
+    "notify": {
+      "path": "notify-send",
+      "args": ["$url"]
     }
-  }
+  },
+  "rules": [
+    {
+      "matches": [["fulldomain", "is", "test"]],
+      "name": "a"
+    },
+    {
+      "name": "brave",
+      "matches": [
+        ["protocol", "is", "https"],
+        ["fulldomain", "is", "github.com"],
+        ["path", "matchesregex", "^/([^/]+/){2}issues/\\d+\\/?$"]
+      ]
+    },
+    {
+      "name": "brave",
+      "matches": [["url", "is", "http://127.0.0.1:8384/"]]
+    },
+    {
+      "name": "copy",
+      "matches": [
+        [
+          "parentprocesscmdline",
+          "is",
+          "/home/nyix/.local/share/Steam/ubuntu12_32/steam -srt-logger-opened"
+        ]
+      ]
+    }
+  ]
 }

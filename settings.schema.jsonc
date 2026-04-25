@@ -10,7 +10,7 @@
         "type": "array",
         "items": {
           "type": "string",
-          "description": "use $url to get url, $parentpath to get the process that spawned the request, ect",
+          "description": "use $url to get url, $parentpath to get the process that spawned the request, etc",
           "minLength": 1
         }
       },
@@ -65,37 +65,17 @@
         "hideEmptyProperties": {
           "type": "boolean",
           "default": true,
-          "description": "the url properties that are blank will be hiden in the browser selector gui"
+          "description": "the url properties that are blank will be hidden in the browser selector gui"
         },
         "closeOnFocusLoss": {
           "type": "boolean",
           "default": true,
           "description": "will close the browser selector window when you click off the window"
         },
-        "alwaysOnTop": {
-          "type": "boolean",
-          "default": true,
-          "description": "sets the browser selector window to be always on top"
-        },
         "closeOnEscPressed": {
           "type": "boolean",
           "default": true,
           "description": "if true while and the escape key is pressed the window will be closed"
-        },
-        "closeOnEscPressedAnywhere": {
-          "type": "boolean",
-          "default": false,
-          "description": "if true while and the escape key is pressed the window will be closed even if the window is not focused"
-        },
-        "titleBar": {
-          "enum": [
-            "shown",
-            "hidden",
-            "toggle start hidden",
-            "toggle start shown"
-          ],
-          "default": "hidden",
-          "description": "will show/hide the titlebar for the browser selector"
         }
       },
       "additionalProperties": false
@@ -154,9 +134,10 @@
                     "fileName",
                     "drive",
                     "FileExt",
-                    "FileName And Ext"
+                    "FileName And Ext",
+                    "parentprocesscmdline"
                   ],
-                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
                 },
                 {
                   "enum": [
@@ -167,11 +148,11 @@
                     "endswith",
                     "includes"
                   ],
-                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
                 },
                 {
                   "type": "string",
-                  "description": " \nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword",
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword",
                   "default": "^https?://"
                 }
               ]

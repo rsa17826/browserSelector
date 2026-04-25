@@ -13,7 +13,6 @@ class Settings(TypedDict, closed=True):
   defaultBrowser: NotRequired[str]
   hideEmptyProperties: NotRequired[bool]
   closeOnFocusLoss: NotRequired[bool]
-  alwaysOnTop: NotRequired[bool]
   closeOnEscPressed: NotRequired[bool]
   closeOnEscPressedAnywhere: NotRequired[bool]
   titleBar: NotRequired[
