@@ -86,9 +86,9 @@ def get_caller_info() -> dict[str, str]:
   shell, Python interpreter, or xdg-open helper.
 
   Returns keys that merge into the URL match dict:
-    parentprocesspath     – resolved exe path  (already in schema Literal)
-    parentprocessname     – comm name (e.g. "code", "slack")
-    parentprocesscmdline  – full command line
+    parentprocesspath     - resolved exe path  (already in schema Literal)
+    parentprocessname     - comm name (e.g. "code", "slack")
+    parentprocesscmdline  - full command line
   """
   result: dict[str, str] = {
     "parentprocesspath": "",
@@ -348,7 +348,7 @@ def resolve_path(path: str) -> str | None:
   found = shutil.which(path)
   return found # None if not found
 
-
+import shlex
 def run_program(prog_name: str, settings: dict, match: dict):
   """Launch prog_name, substituting $vars from match into args."""
   if not prog_name:
@@ -385,7 +385,7 @@ def run_program(prog_name: str, settings: dict, match: dict):
 
       def sub(m, _match=match):
         key = m.group(1)
-        return str(_match.get(key, m.group(0)))
+        return shlex.quote(str(_match.get(key, m.group(0))))
 
       args.append(re.sub(r"\$(\w+)", sub, arg))
 
@@ -577,8 +577,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
       match["url"] = url_var.get()
       root.destroy()
-      if prog_name == "":
-        root.destroy()
       run_program(prog_name, settings, match)
 
     return _open
