@@ -121,23 +121,24 @@
                   "enum": [
                     "url",
                     "protocol",
-                    "fulldomain",
+                    "full domain",
                     "tld",
                     "subdomain",
-                    "maindomainonly",
-                    "maindomain",
-                    "parentprocesspath",
+                    "main domain only",
+                    "main domain",
+                    "parent process path",
                     "path",
                     "perams",
                     "port",
                     "hash",
-                    "fileName",
-                    "drive",
-                    "FileExt",
-                    "FileName And Ext",
-                    "parentprocesscmdline"
+                    "file name",
+                    "Drive",
+                    "file ext",
+                    "file name and ext",
+                    "parent process cmdline",
+                    "parent process name"
                   ],
-                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nfile ext = \nfile name = \nfile name and ext = \nfull domain = calamitymod.wiki.gg\nhash = \nmain domain = wiki.gg\nmain domain only = wiki\nparent process path = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
                 },
                 {
                   "enum": [
@@ -148,11 +149,11 @@
                     "endswith",
                     "includes"
                   ],
-                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nfile ext = \nfile name = \nfile name and ext = \nfull domain = calamitymod.wiki.gg\nhash = \nmain domain = wiki.gg\nmain domain only = wiki\nparent process path = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword"
                 },
                 {
                   "type": "string",
-                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nFileExt = \nfileName = \nFileName And Ext = \nfulldomain = calamitymod.wiki.gg\nhash = \nmaindomain = wiki.gg\nmaindomainonly = wiki\nparentprocesspath = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword",
+                  "description": "\nhttps://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword\nbrowserArgs = \ndrive = \nfile ext = \nfile name = \nfile name and ext = \nfull domain = calamitymod.wiki.gg\nhash = \nmain domain = wiki.gg\nmain domain only = wiki\nparent process path = C:\\Windows\\explorer.exe\npath = /wiki/Bladecrest_Oathsword\nperams = \nport = \nprotocol = https\nsubdomain = calamitymod\ntld = gg\nurl = https://calamitymod.wiki.gg/wiki/Bladecrest_Oathsword",
                   "default": "^https?://"
                 }
               ]

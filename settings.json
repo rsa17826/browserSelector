@@ -29,14 +29,14 @@
   },
   "rules": [
     {
-      "matches": [["fulldomain", "is", "test"]],
+      "matches": [["full domain", "is", "test"]],
       "name": "a"
     },
     {
       "name": "brave",
       "matches": [
         ["protocol", "is", "https"],
-        ["fulldomain", "is", "github.com"],
+        ["full domain", "is", "github.com"],
         ["path", "matchesregex", "^/([^/]+/){2}issues/\\d+\\/?$"]
       ]
     },
@@ -48,7 +48,7 @@
       "name": "copy",
       "matches": [
         [
-          "parentprocesscmdline",
+          "parent process cmdline",
           "is",
           "/home/nyix/.local/share/Steam/ubuntu12_32/steam -srt-logger-opened"
         ]

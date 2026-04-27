@@ -26,20 +26,20 @@ class Rule(TypedDict, closed=True):
       Literal[
         'url',
         'protocol',
-        'fulldomain',
+        'full domain',
         'tld',
         'subdomain',
-        'maindomainonly',
-        'maindomain',
-        'parentprocesspath',
+        'main domain only',
+        'main domain',
+        'parent process path',
         'path',
         'perams',
         'port',
         'hash',
         'fileName',
         'drive',
-        'FileExt',
-        'FileName And Ext',
+        'file ext',
+        'file name and ext',
       ]
       ,Literal[
         'is', 'matchesregex', 'isexact', 'startswith', 'endswith', 'includes'

@@ -86,14 +86,14 @@ def get_caller_info() -> dict[str, str]:
   shell, Python interpreter, or xdg-open helper.
 
   Returns keys that merge into the URL match dict:
-    parentprocesspath     - resolved exe path  (already in schema Literal)
-    parentprocessname     - comm name (e.g. "code", "slack")
-    parentprocesscmdline  - full command line
+    parent process path     - resolved exe path  (already in schema Literal)
+    parent process name     - comm name (e.g. "code", "slack")
+    parent process cmdline  - full command line
   """
   result: dict[str, str] = {
-    "parentprocesspath": "",
-    "parentprocessname": "",
-    "parentprocesscmdline": "",
+    "parent process path": "",
+    "parent process name": "",
+    "parent process cmdline": "",
   }
   if not sys.platform.startswith("linux"):
     return result
@@ -111,9 +111,9 @@ def get_caller_info() -> dict[str, str]:
     # Strip trailing version digits so "python3.11" → "python3" → skip
     bare = name.lower().rstrip("0123456789.-")
     if bare not in _SKIP_PROCS and name.lower() not in _SKIP_PROCS:
-      result["parentprocesspath"] = _proc_exe(ppid)
-      result["parentprocessname"] = name
-      result["parentprocesscmdline"] = _proc_cmdline(ppid)
+      result["parent process path"] = _proc_exe(ppid)
+      result["parent process name"] = name
+      result["parent process cmdline"] = _proc_cmdline(ppid)
       break
 
     pid = ppid
@@ -207,25 +207,25 @@ def save_settings(path: Path, settings: dict):
 def parse_url(url: str) -> dict:
   """
   Break a URL/path into the same fields as the AHK version:
-  url, protocol, fulldomain, tld, subdomain, maindomainonly,
-  maindomain, path, perams, port, hash, fileName, drive,
-  fileNameAndExt, fileExt
+  url, protocol, full domain, tld, subdomain, main domain only,
+  main domain, path, perams, port, hash, fileName, drive,
+  file name and ext, fileExt
   """
   parsed: dict = {
     "url": url,
     "protocol": "",
-    "fulldomain": "",
+    "full domain": "",
     "tld": "",
     "subdomain": "",
-    "maindomainonly": "",
-    "maindomain": "",
+    "main domain only": "",
+    "main domain": "",
     "path": "",
     "perams": "",
     "port": "",
     "hash": "",
     "fileName": "",
     "drive": "",
-    "fileNameAndExt": "",
+    "file name and ext": "",
     "fileExt": "",
   }
 
@@ -242,7 +242,7 @@ def parse_url(url: str) -> dict:
     if m:
       parsed["fileName"] = m.group(1)
       parsed["fileExt"] = m.group(2)
-      parsed["fileNameAndExt"] = m.group(1) + "." + m.group(2)
+      parsed["file name and ext"] = m.group(1) + "." + m.group(2)
     return parsed
 
   # Unix file path
@@ -254,7 +254,7 @@ def parse_url(url: str) -> dict:
     if m:
       parsed["fileName"] = m.group(1)
       parsed["fileExt"] = m.group(2)
-      parsed["fileNameAndExt"] = m.group(1) + "." + m.group(2)
+      parsed["file name and ext"] = m.group(1) + "." + m.group(2)
     return parsed
 
   # http / https
@@ -270,13 +270,13 @@ def parse_url(url: str) -> dict:
       rest,
     )
     if ip_m:
-      parsed["fulldomain"] = ip_m.group(1)
+      parsed["full domain"] = ip_m.group(1)
       rest = rest[ip_m.end() :]
     else:
       dom_m = re.match(r"([^:/?#]+)", rest)
       if dom_m:
         fd = dom_m.group(1)
-        parsed["fulldomain"] = fd
+        parsed["full domain"] = fd
         rest = rest[dom_m.end() :]
         tld_m = re.search(r"\.(\w+)$", fd)
         if tld_m:
@@ -286,8 +286,8 @@ def parse_url(url: str) -> dict:
           parsed["subdomain"] = sub_m.group(1)
         main_m = re.search(r"(\w+)\.(\w+)$", fd)
         if main_m:
-          parsed["maindomainonly"] = main_m.group(1)
-          parsed["maindomain"] = main_m.group(1) + "." + main_m.group(2)
+          parsed["main domain only"] = main_m.group(1)
+          parsed["main domain"] = main_m.group(1) + "." + main_m.group(2)
 
     # Port
     port_m = re.match(r":(\d{1,5})\b", rest)
