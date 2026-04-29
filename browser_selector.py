@@ -19,7 +19,7 @@ import sys
 import shutil
 import tkinter as tk
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # ── Caller process info ───────────────────────────────────────────────────────
 
@@ -358,7 +358,66 @@ def resolve_path(path: str) -> str | None:
   return found # None if not found
 
 
-import shlex
+def _substitute_shell_template(template: str, match: dict) -> str:
+  """
+  Substitute $vars in a shell template, tracking quote context char-by-char.
+    - Inside '...': escape by closing quote, inserting escaped value, reopening
+    - Inside "...": escape backslash, double-quote, dollar, backtick
+    - Bare:         raw substitution (no shell involved)
+  """
+  result: list[str] = []
+  i = 0
+  in_single = False
+  in_double = False
+
+  while i < len(template):
+    ch = template[i]
+
+    if ch == "'" and not in_double:
+      in_single = not in_single
+      result.append(ch)
+      i += 1
+
+    elif ch == '"' and not in_single:
+      in_double = not in_double
+      result.append(ch)
+      i += 1
+
+    elif ch == "\\" and not in_single:
+      # Pass through escape sequences untouched
+      result.append(ch)
+      i += 1
+      if i < len(template):
+        result.append(template[i])
+        i += 1
+
+    elif ch == "$":
+      m = re.match(r"\$(\w+)", template[i:])
+      if m:
+        key = m.group(1)
+        value = str(match.get(key, m.group(0)))
+        if in_single:
+          # Close quote, safely insert value, reopen
+          result.append(value.replace("'", "'\\''"))
+        elif in_double:
+          result.append(
+            value.replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("$", "\\$")
+            .replace("`", "\\`")
+          )
+        else:
+          result.append(value)
+        i += len(m.group(0))
+      else:
+        result.append(ch)
+        i += 1
+
+    else:
+      result.append(ch)
+      i += 1
+
+  return "".join(result)
 
 
 def run_program(prog_name: str, settings: dict, match: dict):
@@ -369,7 +428,7 @@ def run_program(prog_name: str, settings: dict, match: dict):
   programs = settings.get("programs", {})
 
   if prog_name == "__default__":
-    subprocess.Popen(["xdg-open", match["url"]])
+    _ = subprocess.Popen(["xdg-open", match["url"]])
     sys.exit(0)
 
   if prog_name not in programs:
@@ -391,19 +450,19 @@ def run_program(prog_name: str, settings: dict, match: dict):
       subprocess.Popen(["xdg-open", match["url"]])
       sys.exit(0)
 
-    args_tmpl = program.get("args", ["$url"])
-    args = []
+    args_tmpl = cast(list[str], program.get("args", ["$url"]))
+    args: list[str] = []
     for arg in args_tmpl:
-
-      def sub(m, _match=match):
-        key = m.group(1)
-        return shlex.quote(str(_match.get(key, m.group(0))))
-
-      args.append(re.sub(r"\$(\w+)", sub, arg))
+      if re.fullmatch(r"\$(\w+)", arg):
+        # Whole arg is a bare $var — passed directly to execve, no quoting needed
+        key = arg[1:]
+        args.append(str(match.get(key, arg)))
+      else:
+        args.append(_substitute_shell_template(arg, match))
 
     cmd = [exe] + args
     print("Launching:", cmd, file=sys.stderr)
-    subprocess.Popen(cmd)
+    _ = subprocess.Popen(cmd)
     sys.exit(0)
 
   print(f"No executable found for '{prog_name}'", file=sys.stderr)
