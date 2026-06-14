@@ -53,6 +53,35 @@
     },
     "additionalProperties": false
   },
+  "modifierdefault": {
+    "type": "object",
+    "properties": {
+      "args": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "take and return new url",
+          "minLength": 1
+        }
+      },
+      "path": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
   "properties": {
     "settings": {
       "type": "object",
@@ -163,6 +192,23 @@
             "type": "string",
             "default": "",
             "description": "leave blank to ignore url, else set to some key inside #/programs"
+          },
+          "modifiers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "$ref": "#/modifierdefault"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/modifierdefault"
+                  }
+                }
+              ]
+            }
           }
         },
         "additionalProperties": false

@@ -6,6 +6,7 @@ Equivalent to browser_selector.ahk + picker.html
 Register as default browser, and it will:
   - Parse the URL
   - Auto-launch a browser if a rule matches
+  - Support externally defined JSON modifiers to transform URLs dynamically
   - Otherwise show a picker GUI where you can optionally save a new rule
 """
 
@@ -77,7 +78,8 @@ def _proc_cmdline(pid: int) -> str:
       .strip()
     )
   except Exception:
-    return ""
+    pass
+  return ""
 
 
 def get_caller_info() -> dict[str, str]:
@@ -126,10 +128,6 @@ def get_caller_info() -> dict[str, str]:
 SCRIPT_DIR = Path(__file__).resolve().parent
 _IN_NIX_STORE = str(SCRIPT_DIR).startswith("/nix/store")
 
-# When running from the Nix store the script path is read-only,
-# so only consider the XDG path.  Outside the store (dev / Windows)
-# prefer a settings.json next to the script so the project stays
-# self-contained.
 CONFIG_PATHS: list[Path] = (
   [Path.home() / ".config" / "browser-selector" / "settings.json"]
   if _IN_NIX_STORE
@@ -147,6 +145,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "closeOnEscPressed": True,
     "hideEmptyProperties": True,
   },
+  "modifiers": {},
   "programs": {
     "__default__": {
       "path": "__default__",
@@ -257,13 +256,11 @@ def parse_url(url: str) -> dict:
       parsed["file name and ext"] = m.group(1) + "." + m.group(2)
     return parsed
 
-  # http / https
   m = re.match(r"^(https?)://", url)
   if m:
     parsed["protocol"] = m.group(1)
     rest = url[m.end() :]
 
-    # IP address
     ip_m = re.match(
       r"((?:(?:[1-2][0-9]{2}|[0-9]|[1-9][0-9])\.){3}"
       r"(?:[1-2][0-9]{2}|[0-9]|[1-9][0-9]))\b",
@@ -289,37 +286,100 @@ def parse_url(url: str) -> dict:
           parsed["main domain only"] = main_m.group(1)
           parsed["main domain"] = main_m.group(1) + "." + main_m.group(2)
 
-    # Port
     port_m = re.match(r":(\d{1,5})\b", rest)
     if port_m and int(port_m.group(1)) <= 65535:
       parsed["port"] = port_m.group(1)
       rest = rest[port_m.end() :]
 
-    # Path
     path_m = re.match(r"(/[^?#]*)", rest)
     if path_m:
       parsed["path"] = path_m.group(1)
       rest = rest[path_m.end() :]
 
-    # Query string
     params_m = re.match(r"(\?[^#]+)", rest)
     if params_m:
       parsed["perams"] = params_m.group(1)
       rest = rest[params_m.end() :]
 
-    # Hash / fragment
     hash_m = re.match(r"(#.*)", rest)
     if hash_m:
       parsed["hash"] = hash_m.group(1)
 
     return parsed
 
-  # Any other protocol  (mailto:, steam:, spotify:, …)
   m = re.match(r"^(\w+):", url)
   if m:
     parsed["protocol"] = m.group(1)
 
   return parsed
+
+
+# ── External Modifiers Pipeline ───────────────────────────────────────────────
+
+
+def apply_json_modifiers(url: str, mod_names: list[str], settings: dict) -> str:
+  """
+  Runs external commands defined under the "modifiers" block of settings.json.
+  Each command must take the url via arguments (using '{}' placeholder) and
+  return the updated URL string via its standard output.
+  """
+  config_modifiers = settings.get("modifiers", {})
+
+  for name in mod_names:
+    if name not in config_modifiers:
+      print(
+        f"Warning: Modifier '{name}' is not defined in config.", file=sys.stderr
+      )
+      continue
+
+    mod_def = config_modifiers[name]
+    paths = mod_def.get("path")
+    if isinstance(paths, str):
+      paths = [paths]
+
+    for raw_path in paths:
+      exe = resolve_path(raw_path)
+      if not exe:
+        print(f"Not found: {raw_path}", file=sys.stderr)
+        continue
+
+      exe = resolve_path(raw_path)
+      if not exe:
+        print(
+          f"Modifier execution failed: command '{raw_path}' not found.",
+          file=sys.stderr,
+        )
+        continue
+
+      # Map the current URL into args wherever {} exists
+      raw_args = mod_def.get("args", [])
+      args = [
+        arg.replace("{}", url) if isinstance(arg, str) else arg
+        for arg in raw_args
+      ]
+
+      try:
+        # Run the dynamic modifier process and read stdout
+        print(f"Running modifier '{name}': {[exe] + args}", file=sys.stderr)
+        res = subprocess.run(
+          [exe] + args, capture_output=True, text=True, check=True
+        )
+
+        # If the modifier program prints out a fresh URL stream, update it.
+        # Otherwise fall back to the existing URL (e.g. if it only side-effects like copying).
+        new_url = res.stdout.strip()
+        if new_url:
+          url = new_url
+
+        break
+      except subprocess.CalledProcessError as e:
+        print(
+          f"Modifier '{name}' failed with exit code {e.returncode}. Stderr: {e.stderr}",
+          file=sys.stderr,
+        )
+      except Exception as e:
+        print(f"Error handling modifier '{name}': {e}", file=sys.stderr)
+  return url
 
 
 # ── Rule matching ─────────────────────────────────────────────────────────────
@@ -354,8 +414,7 @@ def resolve_path(path: str) -> str | None:
     return "__default__"
   if os.path.isabs(path) and os.path.isfile(path):
     return path
-  found = shutil.which(path)
-  return found # None if not found
+  return shutil.which(path)
 
 
 def _substitute_shell_template(template: str, match: dict) -> str:
@@ -377,20 +436,16 @@ def _substitute_shell_template(template: str, match: dict) -> str:
       in_single = not in_single
       result.append(ch)
       i += 1
-
     elif ch == '"' and not in_single:
       in_double = not in_double
       result.append(ch)
       i += 1
-
     elif ch == "\\" and not in_single:
-      # Pass through escape sequences untouched
       result.append(ch)
       i += 1
       if i < len(template):
         result.append(template[i])
         i += 1
-
     elif ch == "$":
       m = re.match(r"\$(\w+)", template[i:])
       if m:
@@ -412,7 +467,6 @@ def _substitute_shell_template(template: str, match: dict) -> str:
       else:
         result.append(ch)
         i += 1
-
     else:
       result.append(ch)
       i += 1
@@ -428,7 +482,7 @@ def run_program(prog_name: str, settings: dict, match: dict):
   programs = settings.get("programs", {})
 
   if prog_name == "__default__":
-    _ = subprocess.Popen(["xdg-open", match["url"]])
+    subprocess.Popen(["xdg-open", match["url"]])
     sys.exit(0)
 
   if prog_name not in programs:
@@ -462,7 +516,7 @@ def run_program(prog_name: str, settings: dict, match: dict):
 
     cmd = [exe] + args
     print("Launching:", cmd, file=sys.stderr)
-    _ = subprocess.Popen(cmd)
+    subprocess.Popen(cmd)
     sys.exit(0)
 
   print(f"No executable found for '{prog_name}'", file=sys.stderr)
@@ -522,7 +576,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   inner.bind("<Configure>", on_frame_configure)
   canvas.bind("<Configure>", on_canvas_configure)
 
-  # Mouse-wheel scrolling
   def _on_wheel(event):
     canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
@@ -530,8 +583,7 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
   canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
   canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
 
-  # Build one row per URL field
-  row_vars: dict[str, tuple] = {} # key → (BoolVar, StringVar type, StringVar value)
+  row_vars: dict[str, tuple] = {}
 
   FONT = ("TkFixedFont", 11)
   visible_keys = [k for k, v in match.items() if not hide_empty or str(v)]
@@ -624,7 +676,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
       t_var.trace_add("write", _validate)
 
     make_validator(value_var, val_entry, type_var, val_str)
-
     row_vars[key] = (checked_var, type_var, value_var)
 
   # ── Program buttons ───────────────────────────────────────────────────────
@@ -634,7 +685,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
   def make_handler(prog_name: str):
     def _open():
-      # Collect checked rules
       rules_to_add = [
         [k, tv.get(), vv.get()]
         for k, (chk, tv, vv) in row_vars.items()
@@ -651,7 +701,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
 
     return _open
 
-  # "Block" button (no program)
   tk.Button(
     btn_frame,
     text="BLOCK URL",
@@ -676,7 +725,6 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
       command=make_handler(name),
     ).pack(fill="x", pady=1)
 
-  # ── Key / focus bindings ──────────────────────────────────────────────────
   if close_on_esc:
     root.bind("<Escape>", lambda _: root.destroy())
 
@@ -689,32 +737,24 @@ def show_picker(url: str, match: dict, settings: dict, settings_path: Path):
       # 2. Any other transient focus change (window decoration, etc.)
       #    resolves before we decide the window has truly lost focus.
       def _check() -> None:
-        # If a tk.Menu is posted it holds a global grab — not a True blur.
         if root.grab_current() is not None:
           return
         try:
           focused = root.focus_get()
         except KeyError:
-          return # transient focus change (shouldn't happen without a grab, but guard anyway)
+          return
         if focused is None:
           root.destroy()
 
       root.after(150, _check)
 
-    # Delay binding until the window is fully mapped and has taken focus.
-    # Without this, the initial focus transition fires FocusOut immediately
-    # and the window destroys itself before the user sees it.
     root.after(300, lambda: root.bind("<FocusOut>", _on_blur))
 
   root.update_idletasks()
-  # Center on screen
   w, h = root.winfo_reqwidth(), root.winfo_reqheight()
   sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
   root.geometry(f"{max(w, 420)}x{max(h, 300)}+{(sw-420)//2}+{(sh-300)//2}")
-
-  # Grab keyboard focus so Escape works without the user having to click first
   root.focus_force()
-
   root.mainloop()
 
 
@@ -735,26 +775,32 @@ def main():
   match.update(get_caller_info())
 
   if not force:
-    # 1. Default browser shortcut
     default = user_settings.get("defaultBrowser", "")
     if default and default in settings.get("programs", {}):
       run_program(default, settings, match)
       return
 
-    # 2. Walk rules
     for rule in settings.get("rules", []):
       all_match = all(
         do_they_match(str(match.get(k, "")), mt, v)
         for k, mt, v in rule.get("matches", [])
       )
       if all_match:
+        # Check if dynamic modifiers are assigned to this matched rule
+        if "modifiers" in rule:
+          modified_url = apply_json_modifiers(
+            match["url"], rule["modifiers"], settings
+          )
+          # Re-parse everything based on the newly updated URL
+          match = parse_url(modified_url)
+          match.update(get_caller_info())
+
         name = rule.get("name")
         if not name:
           return # URL blocked
         run_program(name, settings, match)
         return
 
-  # 3. Show picker
   show_picker(url, match, settings, settings_path)
 
 

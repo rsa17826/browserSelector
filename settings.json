@@ -1,19 +1,35 @@
 {
-  "$schema": "./settings.schema.jsonc",
+  "$schema": "/home/nyix/projects/browserSelector/settings.schema.jsonc",
   "settings": {
     "closeOnFocusLoss": false,
     "defaultBrowser": "",
     "closeOnEscPressed": true,
     "hideEmptyProperties": true
   },
+  "modifiers": {
+    "noLinkFilter": {
+      "path": [
+        "sh",
+        "bash"
+      ],
+      "args": [
+        "-c",
+        "echo \"$$1 asd\""
+      ]
+    }
+  },
   "programs": {
     "__default__": {
       "path": "__default__",
-      "args": ["$url"]
+      "args": [
+        "$url"
+      ]
     },
     "brave": {
       "path": "brave",
-      "args": ["$url"]
+      "args": [
+        "$url"
+      ]
     },
     "copy": {
       "path": "sh",
@@ -24,25 +40,57 @@
     },
     "notify": {
       "path": "notify-send",
-      "args": ["$url"]
+      "args": [
+        "$url"
+      ]
+    },
+    "vlc": {
+      "path": "vlc",
+      "args": [
+        "$url"
+      ]
     }
   },
   "rules": [
     {
-      "matches": [["full domain", "is", "test"]],
+      "matches": [
+        [
+          "full domain",
+          "is",
+          "test"
+        ]
+      ],
       "name": "a"
     },
     {
       "name": "brave",
       "matches": [
-        ["protocol", "is", "https"],
-        ["full domain", "is", "github.com"],
-        ["path", "matchesregex", "^/([^/]+/){2}issues/\\d+\\/?$"]
+        [
+          "protocol",
+          "is",
+          "https"
+        ],
+        [
+          "full domain",
+          "is",
+          "github.com"
+        ],
+        [
+          "path",
+          "matchesregex",
+          "^/([^/]+/){2}issues/\\d+\\/?$"
+        ]
       ]
     },
     {
       "name": "brave",
-      "matches": [["url", "is", "http://127.0.0.1:8384/"]]
+      "matches": [
+        [
+          "url",
+          "is",
+          "http://127.0.0.1:8384/"
+        ]
+      ]
     },
     {
       "name": "copy",
@@ -52,6 +100,84 @@
           "is",
           "/home/nyix/.local/share/Steam/ubuntu12_32/steam -srt-logger-opened"
         ]
+      ]
+    },
+    {
+      "name": "copy",
+      "matches": [
+        [
+          "parent process cmdline",
+          "startswith",
+          "/home/nyix/.local/share/Steam/ubuntu12_32/steam -srt-logger-opened steam://rungameid/"
+        ]
+      ]
+    },
+    {
+      "name": "copy",
+      "matches": [
+        [
+          "parent process cmdline",
+          "is",
+          "/nix/store/ainz81rrbcpm5xgjjj18bnvyl7j5wz6k-love-11.5/bin/love --fused /nix/store/cv4gybljv8srgdaivzp6jnvc47wx3kmw-olympus-unwrapped-26.04.16.02/lib/olympus/olympus.love"
+        ]
+      ]
+    },
+    {
+      "name": "",
+      "matches": [
+        [
+          "url",
+          "is",
+          "/home/nyix/.local/share/Celeste/errorLog.txt"
+        ],
+        [
+          "parent process name",
+          "is",
+          "Celeste"
+        ]
+      ]
+    },
+    {
+      "name": "vlc",
+      "matches": [
+        [
+          "url",
+          "startswith",
+          "/home/nyix/videos/flashback/"
+        ]
+      ]
+    },
+    {
+      "name": "",
+      "matches": [
+        [
+          "url",
+          "is",
+          "http://mathbreakers.com/menuimage/"
+        ]
+      ]
+    },
+    {
+      "name": "",
+      "matches": [
+        [
+          "url",
+          "is",
+          "http://mathbreakers.com/kickstarter"
+        ]
+      ]
+    },
+    {
+      "name": "notify",
+      "matches": [
+        [
+          "parent process name",
+          "is",
+          "termbar"
+        ]
+      ],
+      "modifiers": [
+        "noLinkFilter"
       ]
     }
   ]
