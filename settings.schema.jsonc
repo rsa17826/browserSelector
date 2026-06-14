@@ -126,6 +126,23 @@
         ]
       }
     },
+    "modifiers": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "object",
+            "$ref": "#/modifierdefault"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "$ref": "#/modifierdefault"
+            }
+          }
+        ]
+      }
+    },
     "$schema": {
       "type": "string",
       "minLength": 1
@@ -192,28 +209,11 @@
             "type": "string",
             "default": "",
             "description": "leave blank to ignore url, else set to some key inside #/programs"
-          },
-          "modifiers": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "$ref": "#/modifierdefault"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/modifierdefault"
-                  }
-                }
-              ]
-            }
           }
         },
         "additionalProperties": false
       }
     }
   },
-  "required": ["rules", "programs", "settings"]
+  "required": ["rules", "programs", "settings", "modifiers"]
 }
